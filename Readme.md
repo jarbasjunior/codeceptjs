@@ -20,17 +20,6 @@
 
 - Execute the command -> `npm install codeceptjs --save`;
 
-- Execute `npm install puppeteer --save` for add the **Puppeteer** dependecy in your **package.json** file. This dependency is necessary for simulate users actions in the browser;
-  ```
-  {
-    "name": "your_project",
-    "dependencies": {
-      "codeceptjs": "^2.2.1",
-      "puppeteer": "^1.19.0"
-    }
-  }
-  ```
-
 - In terminal execute: `chmod +x cc`;
 
 - In terminal execute: `./cc` for list all codeceptjs actions:
@@ -57,13 +46,21 @@
     run [options] [test]                            Executes tests
     run-multiple [options] [suites...]              Executes tests multiple
   ```
-## Starting project for web testing with Puppeteer
+## Starting project for web testing - Option 1 -> Puppeteer
 
+- Execute `npm install puppeteer --save` for add the **Puppeteer** dependecy in your **package.json** file. This dependency is necessary for simulate users actions in the browser;
+  ```
+  {
+    "name": "your_project",
+    "dependencies": {
+      "codeceptjs": "^2.2.1",
+      "puppeteer": "^1.19.0"
+    }
+  }
+  ```
 - For begin your project execute: `./cc init`;
 
 - Answer the first ask with: `./tests/*.js`;
-
-- In this example we will use **Puppeteer**, choose this option;
 
 - Confirm the suggested answer, for directory where should save log, reports and screenshots (`./output`);
 
@@ -77,21 +74,76 @@
 
 - Answer `Y` to display browser show during run tests;
 
-- In the terminal type it `l` and `enter`. And check if the output conform to the code below:
+- In the `codecept.conf.js` file override the `Puppeteer` helper with to the code below:
   ```
-  total 148K
-  drwxrwxr-x   5 jarbas jarbas 4,0K ago  5 00:36 .
-  drwxrwxr-x  20 jarbas jarbas 4,0K ago  5 00:22 ..
-  -rwxrwxr-x   1 jarbas jarbas   44 ago  5 00:28 cc
-  -rw-rw-r--   1 jarbas jarbas  272 ago  5 00:36 codecept.conf.js
-  -rw-rw-r--   1 jarbas jarbas   49 ago  5 00:36 jsconfig.json
-  drwxrwxr-x 231 jarbas jarbas  12K ago  5 00:25 node_modules
-  drwxrwxr-x   2 jarbas jarbas 4,0K ago  5 00:36 output
-  -rw-rw-r--   1 jarbas jarbas  109 ago  5 00:25 package.json
-  -rw-rw-r--   1 jarbas jarbas  83K ago  5 00:25 package-lock.json
-  -rw-rw-r--   1 jarbas jarbas  14K ago  5 00:36 steps.d.ts
-  -rw-rw-r--   1 jarbas jarbas  267 ago  5 00:36 steps_file.js
-  drwxrwxr-x   2 jarbas jarbas 4,0K ago  5 00:31 tests 
+  helpers: {
+    Puppeteer: {
+      url: 'https://google.com',
+      browser: 'chrome',
+      windowSize: '1366x768x24',
+      show: true, // false for headless mode
+      chrome: {
+        args: ['--window-size=1366,768', '--no-sandbox'],
+      },
+    },
+  },
+  ```
+
+## Starting project for web testing - Option 2 -> WebDriver
+
+- Execute `npm i @wdio/selenium-standalone-service --save-dev` for add the **WebDriverIo** dependecy in your **package.json** file. This dependency is necessary for simulate users actions in the browser;
+  ```
+  {
+    "name": "Codeceptjs",
+    "dependencies": {
+      "codeceptjs": "^2.3.0"
+    },
+    "devDependencies": {
+      "@wdio/selenium-standalone-service": "^5.12.1"
+    }
+  }
+  ```
+- For begin your project execute: `./cc init`;
+
+- Answer the first ask with: `./tests/*.js`;
+
+- Confirm the suggested answer, for directory where should save log, reports and screenshots (`./output`);
+
+- Answer `Y` for extend the object **I** in custom steps;
+
+- Confirm the suggested answer to set the location of custom steps (`./steps_file.js`);
+
+- Choose localization for tests;
+
+- Inform the URL for the web tests https://google.com, for example;
+
+- Confirm the suggested answer (chrome) to set browser for web tests;
+
+- In the `codecept.conf.js` file override the `WebDriver` helper with to the code below:
+  ```
+  helpers: {
+    WebDriver: {
+      url: 'https://google.com',
+      browser: 'chrome',
+      host: '127.0.0.1',
+      port: 4444,
+      restart: false,
+      windowSize: '1920x1680',
+      desiredCapabilities: {
+        // descomment --headless argument for execution without browser display
+        chromeOptions: {
+          args: [ /* "--headless", */ "--disable-gpu", "--window-size=1200,1000", "--no-sandbox" ]
+        }
+      }
+    }
+  },
+  // Enable it in config inside plugins section
+  plugins: {
+    wdio: {
+      enabled: true,
+      services: ['selenium-standalone']
+    }
+  },
   ```
 
 ## Create test example
@@ -113,7 +165,7 @@
     I.fillField('input[name=q]', 'codeceptjs')
     I.click('input[name=btnK]')
     I.waitForVisible('#resultStats', 10) // wait up to ten seconds
-    I.clickLink('Quickstart')
+    I.click('Quickstart')
     I.wait(3)
   });
   ```
