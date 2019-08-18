@@ -173,4 +173,105 @@
 
 - For step by step execution: `./cc run --steps`;
 
-- For more information visit [Codeceptjs](https://codecept.io) official website. o/
+- For more details execution: `./cc run --verbose`.
+
+## Adding Page Object pattern in project
+
+### Adding initial Google page
+
+- In the terminal execute: `./cc gpo`;
+
+- Answer `google_initial_page` to map the google initial page;
+
+- Confirm the suggested path `./pages/google_initial_page.js`;
+
+- In `codecept.conf.js` file add from `include` to the code below:
+  ```
+  google_initial_page: './pages/google_initial_page.js'
+  ```
+- In `google_initial_page.js` add from `module.exports` to the code below:
+  ```
+  fields: {
+    search_google: 'input[name=q]'
+  },
+
+  buttons: {
+    search_google: 'input[name=btnK]'
+  },
+
+  search_google(values) {
+    I.fillField(this.fields.search_google, values)
+    I.click(this.buttons.search_google)
+  }
+  ```
+### Adding search result Google page
+
+- In the terminal execute: `./cc gpo`;
+
+- Answer `search_result_google_page` to map the google initial page;
+
+- Confirm the suggested path `./pages/search_result_google_page.js`;
+
+- In `codecept.conf.js` file add from `include` to the code below:
+  ```
+  search_result_google_page: './pages/search_result_google_page.js'
+  ```
+- In `search_result_google_page.js` add from `module.exports` to the code below:
+  ```
+  elements: {
+    result_latency: '#resultStats'
+  },
+
+  click_link_result(link) {
+    I.waitForVisible(this.elements.result_latency, 10) // wait up to ten seconds
+    I.click(link)
+  }
+  ```
+
+### Adding CodeceptJS QuickStart page
+
+- In the terminal execute: `./cc gpo`;
+
+- Answer `codeceptjs_quickstart_page` to map the google initial page;
+
+- Confirm the suggested path `./pages/codeceptjs_quickstart_page.js`;
+
+- In `codecept.conf.js` file add from `include` to the code below:
+  ```
+  codeceptjs_quickstart_page: './pages/codeceptjs_quickstart_page.js'
+  ```
+- In `codeceptjs_quickstart_page` add from `module.exports` to the code below:
+  ```
+  labels: {
+    title_page: { xpath: '(//h1)[1]' }
+  },
+
+  check_title_name(title_name) {
+    I.waitForVisible(this.labels.title_page, 10)
+    I.seeTextEquals(title_name, this.labels.title_page)
+  }
+  ```
+
+### Refactoring tests/first_example_test.js
+
+  - Override `tests/first_example_test.js` file with to the code below:
+    ```
+    Feature('Google Search CodeceptJS QuickStart');
+
+    let url = 'https://google.com'
+
+    Scenario('test something', (I, google_initial_page, search_result_google_page, codeceptjs_quickstart_page) => {
+      I.amOnPage(url)
+      google_initial_page.search_google('codeceptjs')
+      search_result_google_page.click_link_result('Quickstart')
+      codeceptjs_quickstart_page.check_title_name('Quickstart')
+      I.wait(3)
+    });
+    ```
+- Run test -> `./cc run`;
+
+- For step by step execution: `./cc run --steps`;
+
+- For more details execution: `./cc run --verbose`.
+
+### For more information visit [Codeceptjs](https://codecept.io) official website. o/
