@@ -274,4 +274,55 @@
 
 - For more details execution: `./cc run --verbose`.
 
+## Debuging tests
+
+- Test execution can be paused in any place of a test with `pause()` call.
+
+- Add command after opening the page:
+    ```
+    Feature('Google Search CodeceptJS QuickStart');
+
+    let url = 'https://google.com'
+
+    Scenario('test something', (I, google_initial_page, search_result_google_page, codeceptjs_quickstart_page) => {
+      I.amOnPage(url)
+      pause()
+      google_initial_page.search_google('codeceptjs')
+      search_result_google_page.click_link_result('Quickstart')
+      codeceptjs_quickstart_page.check_title_name('Quickstart')
+      I.wait(3)
+    });
+    ```
+- In the terminal will display the following options:
+    ```
+    Interactive shell started
+    Use JavaScript syntax to try steps in action
+    - Press ENTER to run the next step
+    - Press TAB twice to see all available commands
+    - Type exit + Enter to exit the interactive shell
+    ```
+- If a test is failing you can prevent browser from closing by putting `pause()` command into `After()` hook.
+    ```
+    After(pause)
+    ```
+## Adding Comments
+
+- There is a simple way to add additional comments to your test scenario. Use say command to print information to screen.
+  ```
+  Feature('Google Search CodeceptJS QuickStart');
+
+  let url = 'https://google.com'
+
+  Scenario('test something', (I, google_initial_page, search_result_google_page, codeceptjs_quickstart_page) => {
+    I.amOnPage(url)
+    // pause()
+    google_initial_page.search_google('codeceptjs')
+    search_result_google_page.click_link_result('Quickstart')
+    I.say('Search \'QuickStart\' Found', 'magenta') // without second argument, will print the default color (cyan)
+    codeceptjs_quickstart_page.check_title_name('Quickstart')
+    I.wait(3)
+  });
+  ``` 
+- Run with `--steps` (`./cc run --steps`).
+
 ### For more information visit [Codeceptjs](https://codecept.io) official website. o/
