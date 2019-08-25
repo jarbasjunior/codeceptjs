@@ -46,50 +46,7 @@
     run [options] [test]                            Executes tests
     run-multiple [options] [suites...]              Executes tests multiple
   ```
-## Starting project for web testing - Option 1 -> Puppeteer
-
-- Execute `npm install puppeteer --save` for add the **Puppeteer** dependecy in your **package.json** file. This dependency is necessary for simulate users actions in the browser;
-  ```
-  {
-    "name": "your_project",
-    "dependencies": {
-      "codeceptjs": "^2.2.1",
-      "puppeteer": "^1.19.0"
-    }
-  }
-  ```
-- For begin your project execute: `./cc init`;
-
-- Answer the first ask with: `./tests/*.js`;
-
-- Confirm the suggested answer, for directory where should save log, reports and screenshots (`./output`);
-
-- Answer `Y` for extend the object **I** in custom steps;
-
-- Confirm the suggested answer to set the location of custom steps (`./steps_file.js`);
-
-- Choose localization for tests;
-
-- Inform the URL for the web tests https://google.com, for example;
-
-- Answer `Y` to display browser show during run tests;
-
-- In the `codecept.conf.js` file override the `Puppeteer` helper with to the code below:
-  ```
-  helpers: {
-    Puppeteer: {
-      url: 'https://google.com',
-      browser: 'chrome',
-      windowSize: '1366x768x24',
-      show: true, // false for headless mode
-      chrome: {
-        args: ['--window-size=1366,768', '--no-sandbox'],
-      },
-    },
-  },
-  ```
-
-## Starting project for web testing - Option 2 -> WebDriver
+## Starting project for web testing with **WebDriver**
 
 - Execute `npm i @wdio/selenium-standalone-service --save-dev` for add the **WebDriverIo** dependecy in your **package.json** file. This dependency is necessary for simulate users actions in the browser;
   ```
@@ -115,7 +72,7 @@
 
 - Choose localization for tests;
 
-- Inform the URL for the web tests https://google.com, for example;
+- Inform the URL for the web tests https://precodahora.pb.gov.br;
 
 - Confirm the suggested answer (chrome) to set browser for web tests;
 
@@ -123,7 +80,7 @@
   ```
   helpers: {
     WebDriver: {
-      url: 'https://google.com',
+      url: 'https://precodahora.pb.gov.br',
       browser: 'chrome',
       host: '127.0.0.1',
       port: 4444,
@@ -137,6 +94,7 @@
       }
     }
   },
+
   // Enable it in config inside plugins section
   plugins: {
     wdio: {
@@ -150,24 +108,30 @@
 
 - Run on the terminal the command for generate test: `./cc gt`;
 
-- Enter the test name: `first_example`;
+- Enter the test name: `search_prices`;
 
-- Enter the feature name: `Search Google`;
+- Enter the feature name: `Search Prices`;
 
-- Override the created `tests/first_example_test.js` file, with to the code below:
+- Override the created `tests/search_prices_test.js` file, with to the code below:
   ```
-  Feature('Search Google');
+  const { MAX_WAIT } = require('../consts.js')
+  const { I } = inject()
 
-  let url = 'https://google.com'
+  Feature('Search Prices')
 
-  Scenario('test something', (I) => {
-    I.amOnPage(url)
-    I.fillField('input[name=q]', 'codeceptjs')
-    I.click('input[name=btnK]')
-    I.waitForVisible('#resultStats', 10) // wait up to ten seconds
-    I.click('Quickstart')
-    I.wait(3)
-  });
+  Scenario('Etanol - 810101001', async () => {
+    product_name = 'Etanol'
+    product_id = '810101001'
+    I.amOnPage('/')
+    I.click('#fake-sbar')
+    I.fillField('#top-sbar', product_name)
+    I.waitForElement({ xpath: '//li[text()="Você quis dizer:"]/../li[2]' }, MAX_WAIT)
+    I.click({ xpath: '//li[text()="Você quis dizer:"]/../li[2]' })
+    I.waitForElement({ xpath: '//div[@class="list-info mt-2 mb-2"]/h6[2]' }, MAX_WAIT)
+    I.seeTextEquals('Você buscou produtos com código de barras ' + product_id + '. Exibindo 25 resultados.', { xpath: '//div[@class="list-info mt-2 mb-2"]/h6[2]' })
+    I.waitForElement({ xpath: '//div[@class="media-flex item-list"][1]//img[@src="https://apiprecos.tce.pb.gov.br/images/810101001"]' }, MAX_WAIT)
+    I.see(product_name.toUpperCase(), { xpath: '//div[@class="media-flex item-list"][1]/div[2]/div[1]/strong' })
+  })
   ```
 - Run test -> `./cc run`;
 
@@ -177,152 +141,255 @@
 
 ## Adding Page Object pattern in project
 
-### Adding initial Google page
+### Adding **initial page**
 
-- In the terminal execute: `./cc gpo`;
+- At the terminal execute: `./cc gpo`;
 
-- Answer `google_initial_page` to map the google initial page;
+- Answer `initial_page` to map the initial page;
 
-- Confirm the suggested path `./pages/google_initial_page.js`;
-
-- In `codecept.conf.js` file add from `include` to the code below:
-  ```
-  google_initial_page: './pages/google_initial_page.js'
-  ```
-- In `google_initial_page.js` add from `module.exports` to the code below:
-  ```
-  fields: {
-    search_google: 'input[name=q]'
-  },
-
-  buttons: {
-    search_google: 'input[name=btnK]'
-  },
-
-  search_google(values) {
-    I.fillField(this.fields.search_google, values)
-    I.click(this.buttons.search_google)
-  }
-  ```
-### Adding search result Google page
-
-- In the terminal execute: `./cc gpo`;
-
-- Answer `search_result_google_page` to map the google initial page;
-
-- Confirm the suggested path `./pages/search_result_google_page.js`;
+- Confirm the suggested path `./pages/initial_page.js`;
 
 - In `codecept.conf.js` file add from `include` to the code below:
   ```
-  search_result_google_page: './pages/search_result_google_page.js'
+  initial_page: './pages/initial_page.js'
   ```
-- In `search_result_google_page.js` add from `module.exports` to the code below:
+- Override `initial_page.js` file with to the code below:
   ```
-  elements: {
-    result_latency: '#resultStats'
-  },
+  const { I } = inject();
+  const { MAX_WAIT } = require('../consts.js')
 
-  click_link_result(link) {
-    I.waitForVisible(this.elements.result_latency, 10) // wait up to ten seconds
-    I.click(link)
+  module.exports = {
+
+    fields: {
+      enable_search_product: '#fake-sbar',
+      search_product: '#top-sbar'
+    },
+
+    links: {
+      first_search_result: { xpath: '//li[text()="Você quis dizer:"]/../li[2]' }
+    },
+
+    search_product(product) {
+      I.click(this.fields.enable_search_product)
+      I.fillField(this.fields.search_product, product)
+      I.waitForElement(this.links.first_search_result, MAX_WAIT)
+      I.click(this.links.first_search_result)
+    }
   }
   ```
+### Adding **products page**
 
-### Adding CodeceptJS QuickStart page
+- At the terminal execute: `./cc gpo`;
 
-- In the terminal execute: `./cc gpo`;
+- Answer `products_page` to map the page of found products;
 
-- Answer `codeceptjs_quickstart_page` to map the google initial page;
-
-- Confirm the suggested path `./pages/codeceptjs_quickstart_page.js`;
+- Confirm the suggested path `./pages/products_page.js`;
 
 - In `codecept.conf.js` file add from `include` to the code below:
   ```
-  codeceptjs_quickstart_page: './pages/codeceptjs_quickstart_page.js'
+  products_page: './pages/products_page.js'
   ```
-- In `codeceptjs_quickstart_page` add from `module.exports` to the code below:
+- Override `products_page.js` file with to the code below:
   ```
-  labels: {
-    title_page: { xpath: '(//h1)[1]' }
-  },
+  const { I } = inject();
+  const { MAX_WAIT } = require('../consts.js')
 
-  check_title_name(title_name) {
-    I.waitForVisible(this.labels.title_page, 10)
-    I.seeTextEquals(title_name, this.labels.title_page)
+  module.exports = {
+
+    labels: {
+      amount_results: { xpath: '//div[@class="list-info mt-2 mb-2"]/h6[2]' },
+      title_first_record: { xpath: '//div[@class="media-flex item-list"][1]/div[2]/div[1]/strong' }
+    },
+
+    images: {
+      etanol: { xpath: '//div[@class="media-flex item-list"][1]//img[@src="https://apiprecos.tce.pb.gov.br/images/810101001"]' }
+    },
+
+    check_search_result(id, name) {
+      I.waitForElement(this.labels.amount_results, MAX_WAIT)
+      I.seeTextEquals('Você buscou produtos com código de barras ' + id + '. Exibindo 25 resultados.', this.labels.amount_results)
+      I.waitForElement(this.images.etanol, MAX_WAIT)
+      I.see(name.toUpperCase(), this.labels.title_first_record)
+    }
   }
   ```
 
-### Refactoring tests/first_example_test.js
+### Refactoring **tests/search_prices_test.js**
 
-  - Override `tests/first_example_test.js` file with to the code below:
-    ```
-    Feature('Google Search CodeceptJS QuickStart');
+  - Override `tests/search_prices_test.js` file with to the code below:
+  ```
+  const { I, initial_page, products_page } = inject()
 
-    let url = 'https://google.com'
+  Feature('Search Prices')
 
-    Scenario('test something', (I, google_initial_page, search_result_google_page, codeceptjs_quickstart_page) => {
-      I.amOnPage(url)
-      google_initial_page.search_google('codeceptjs')
-      search_result_google_page.click_link_result('Quickstart')
-      codeceptjs_quickstart_page.check_title_name('Quickstart')
-      I.wait(3)
-    });
-    ```
+  Scenario('Etanol - 810101001', async () => {
+    product_name = 'Etanol'
+    product_id = '810101001'
+    I.amOnPage('/')
+    initial_page.search_product(product_name)
+    products_page.check_search_result(product_id, product_name)
+  })
+  ```
 - Run test -> `./cc run`;
 
 - For step by step execution: `./cc run --steps`;
 
 - For more details execution: `./cc run --verbose`.
 
-## Debuging tests
+## Adding mobile test with **Appium**
 
-- Test execution can be paused in any place of a test with `pause()` call.
+### Prerequisite: [JDK and JAVA_HOME configurated](https://thishosting.rocks/install-java-ubuntu/), [SDK](https://developer.android.com/studio) and [ANDROID_HOME](https://itrendbuzz.com/set-path-environment-variable-for-android-sdk-in-ubuntu/) configurated, and [APPIUM](http://appium.io/) installed
 
-- Add command after opening the page:
-    ```
-    Feature('Google Search CodeceptJS QuickStart');
+- Start a virtual device in Android Studio, or connect your device via USB. In this example, let's use Android 9;
 
-    let url = 'https://google.com'
+- Start appium in terminal `appium`;
 
-    Scenario('test something', (I, google_initial_page, search_result_google_page, codeceptjs_quickstart_page) => {
-      I.amOnPage(url)
-      pause()
-      google_initial_page.search_google('codeceptjs')
-      search_result_google_page.click_link_result('Quickstart')
-      codeceptjs_quickstart_page.check_title_name('Quickstart')
-      I.wait(3)
-    });
-    ```
-- In the terminal will display the following options:
-    ```
-    Interactive shell started
-    Use JavaScript syntax to try steps in action
-    - Press ENTER to run the next step
-    - Press TAB twice to see all available commands
-    - Type exit + Enter to exit the interactive shell
-    ```
-- If a test is failing you can prevent browser from closing by putting `pause()` command into `After()` hook.
-    ```
-    After(pause)
-    ```
-## Adding Comments
-
-- There is a simple way to add additional comments to your test scenario. Use say command to print information to screen.
+- Output in terminal:
   ```
-  Feature('Google Search CodeceptJS QuickStart');
+  [Appium] Welcome to Appium v1.14.1
+  [Appium] Appium REST http interface listener started on 0.0.0.0:4723
+  ```
 
-  let url = 'https://google.com'
+- Add the code below in `codecept.conf.js` file and **comment helper Webdriver**:
+  ```
+  Appium: {
+      app: '<path_project>/apks/preco_da_hora.apk',
+      platform: 'Android',
+      device: '0052204890', // list your device code running "adb devices" in terminal
+      desiredCapabilities: {
+        'platformVersion': '9', // check your android version
+        'platformName': 'Android',
+        'deviceName': 'Anyname',
+        'appPackage': 'br.gov.pb.precodahora',
+        'appActivity': 'br.gov.pb.precodahora.MainActivity',
+        'autoGrantPermissions': true
+      }
+    }
+  ```
+## Refactoring pages for mobile platform execution
 
-  Scenario('test something', (I, google_initial_page, search_result_google_page, codeceptjs_quickstart_page) => {
-    I.amOnPage(url)
-    // pause()
-    google_initial_page.search_google('codeceptjs')
-    search_result_google_page.click_link_result('Quickstart')
-    I.say('Search \'QuickStart\' Found', 'magenta') // without second argument, will print the default color (cyan)
-    codeceptjs_quickstart_page.check_title_name('Quickstart')
-    I.wait(3)
-  });
-  ``` 
-- Run with `--steps` (`./cc run --steps`).
+### Refactoring **initial page** for mobile test
+
+- Override `initial_page.js` file with to the code below:
+  ```
+  const { I } = inject();
+  const { MAX_WAIT } = require('../consts.js')
+
+  module.exports = {
+
+    // locators web
+    fields: {
+      enable_search_product: '#fake-sbar',
+      search_product: '#top-sbar'
+    },
+
+    links: {
+      first_search_result: { xpath: '//li[text()="Você quis dizer:"]/../li[2]' }
+    },
+    
+    // locators android
+    android_fields: {
+      enable_field_search: 'Pesquise aqui...',
+      search_product: 'Palavra-chave, código de barras ou CNPJ',
+      first_search_result: { xpath: '//android.widget.ImageView[@index="4"]' }
+    },
+
+    android_links: {
+      first_search_result: 'ETANOL HIDRATADO COMUM'
+    },
+
+    search_product(product) {
+      I.runInWeb(() => {
+        I.click(this.fields.enable_search_product)
+        I.fillField(this.fields.search_product, product)
+        I.waitForElement(this.links.first_search_result, MAX_WAIT)
+        I.click(this.links.first_search_result)
+      })
+
+      I.runOnAndroid(() => {
+        I.waitForElement(this.android_fields.enable_field_search)
+        I.tap(this.android_fields.enable_field_search)
+        I.fillField(this.android_fields.search_product, product)
+        I.waitForElement(this.android_links.first_search_result, MAX_WAIT)
+        I.tap(this.android_links.first_search_result)
+      })
+    }
+  }
+
+  ```
+### Refactoring **products page** for mobile test
+
+- Override `apps_details_page.js` file with to the code below:
+  ```
+  const { I } = inject();
+  const { MAX_WAIT } = require('../consts.js')
+
+  module.exports = {
+
+    // locators web
+    labels: {
+      amount_results: { xpath: '//div[@class="list-info mt-2 mb-2"]/h6[2]' },
+      title_first_record: { xpath: '//div[@class="media-flex item-list"][1]/div[2]/div[1]/strong' }
+    },
+
+    images: {
+      etanol: { xpath: '//div[@class="media-flex item-list"][1]//img[@src="https://apiprecos.tce.pb.gov.br/images/810101001"]' }
+    },
+
+    // locators android
+    android_labels:{
+      title_first_record: { xpath: '//android.widget.ImageView[@instance="4"]' }
+    },
+
+    check_search_result(id, name) {
+      I.runInWeb(() => {
+        I.waitForElement(this.labels.amount_results, MAX_WAIT)
+        I.seeTextEquals('Você buscou produtos com código de barras ' + id + '. Exibindo 25 resultados.', this.labels.amount_results)
+        I.waitForElement(this.images.etanol, MAX_WAIT)
+        I.see(name.toUpperCase(), this.labels.title_first_record)
+      })
+
+      I.runOnAndroid(() => {
+        I.waitForElement(this.android_labels.title_first_record, MAX_WAIT)
+        I.see(name.toUpperCase(), this.android_labels.title_first_record)
+      })
+    }
+  }
+  ```
+### Refactoring **tests/search_prices_test.js** for mobile test
+
+- Override `tests/search_prices_test.js` file with to the code below:
+  ```
+  const { I, initial_page, products_page, modal_important } = inject()
+
+  Feature('Search Prices')
+
+  Before( async () => {
+    I.runInWeb(() => {
+      I.amOnPage('/')
+    })
+  })
+
+  Scenario('Etanol - 810101001', async () => {
+    product_name = 'Etanol'
+    product_id = '810101001'
+    modal_important.close_modal_important()
+    initial_page.search_product(product_name)
+    products_page.check_search_result(product_id, product_name)
+  })
+  ```
+
+## Running on multiple platforms (with npm)
+
+- In the `package.json` file add to the code below:
+  ```
+  "scripts": {
+    "web": "codeceptjs run -c codecept.conf.js --override '{\"helpers\": { \"WebDriver\": { \"url\": \"https://precodahora.pb.gov.br\", \"browser\": \"chrome\", \"host\": \"127.0.0.1\", \"port\": 4444, \"restart\": \"false\", \"windowSize\": \"1920x1680\", \"desiredCapabilities\": { \"chromeOptions\": { \"args\": [ \"--disable-gpu\", \"--window-size=1200,1000\", \"--no-sandbox\" ]}}}}} ' --steps",
+    "android": "codeceptjs run -c codecept.conf.js --override '{\"helpers\": { \"Appium\": { \"app\": \"<path_your_project>/apks/preco_da_hora.apk\", \"platform\": \"Android\", \"device\": \"<list_your_device_code_running_"adb devices"_in_terminal>\", \"desiredCapabilities\": { \"platformVersion\": \"check_your_android_version\", \"platformName\": \"Android\", \"deviceName\": \"Anyname\", \"appPackage\": \"br.gov.pb.precodahora\", \"appActivity\": \"br.gov.pb.precodahora.MainActivity\", \"autoGrantPermissions\": true }}}}' --steps"
+  }
+  ```
+- At the terminal, run `npm run android & npm run web` for web and android execution;
+
+- Run `npm run android` only Android running or `npm run web` for web running.
 
 ### For more information visit [Codeceptjs](https://codecept.io) official website. o/
