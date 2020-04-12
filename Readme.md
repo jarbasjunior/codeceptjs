@@ -238,7 +238,7 @@
 
 ## Adding mobile test with **Appium**
 
-### Prerequisite: [JDK and JAVA_HOME configurated](https://thishosting.rocks/install-java-ubuntu/), [SDK](https://developer.android.com/studio) and [ANDROID_HOME](https://itrendbuzz.com/set-path-environment-variable-for-android-sdk-in-ubuntu/) configurated, and [APPIUM](http://appium.io/) installed
+### Prerequisite: [JDK and JAVA_HOME configurated](https://thishosting.rocks/install-java-ubuntu/), [download SDK](https://developer.android.com/studio), [installation SDK](https://developer.android.com/studio/install?hl=pt-br) and [ANDROID_HOME](https://itrendbuzz.com/set-path-environment-variable-for-android-sdk-in-ubuntu/) configurated, and [APPIUM](http://appium.io/) installed
 
 - Start a virtual device in Android Studio, or connect your device via USB. In this example, let's use Android 9;
 
